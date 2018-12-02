@@ -3,13 +3,24 @@
 <head>
     <title>Temperature &amp; Humidity live data</title>
     <script src="javascripts/jquery-2.1.4.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="javascripts/Chart.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="javascripts/index.js" type="text/javascript" charset="utf-8"></script>
-    <link href="stylesheets/style.css" rel="stylesheet" />
+    <script src="javascripts/smoothie.js"></script>
+    <style>
+        #legend li span.symbol {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            margin: -4 10px;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas id="myChart" width="400" height="150"></canvas>
+    <h1>Sensor temperatures</h1>
+    <canvas id="chart" style="width:100%; height:400px"></canvas>
+    <ol id="legend">
+
+    </ol>
 </body>
 
 </html>

@@ -1,100 +1,55 @@
 $(document).ready(function () {
-  var timeData = [],
-    temperatureData = [],
-    humidityData = [];
-  var data = {
-    labels: timeData,
-    datasets: [
-      {
-        fill: false,
-        label: 'Temperature',
-        yAxisID: 'Temperature',
-        borderColor: "rgba(255, 204, 0, 1)",
-        pointBoarderColor: "rgba(255, 204, 0, 1)",
-        backgroundColor: "rgba(255, 204, 0, 0.4)",
-        pointHoverBackgroundColor: "rgba(255, 204, 0, 1)",
-        pointHoverBorderColor: "rgba(255, 204, 0, 1)",
-        data: temperatureData
-      },
-      {
-        fill: false,
-        label: 'Humidity',
-        yAxisID: 'Humidity',
-        borderColor: "rgba(24, 120, 240, 1)",
-        pointBoarderColor: "rgba(24, 120, 240, 1)",
-        backgroundColor: "rgba(24, 120, 240, 0.4)",
-        pointHoverBackgroundColor: "rgba(24, 120, 240, 1)",
-        pointHoverBorderColor: "rgba(24, 120, 240, 1)",
-        data: humidityData
-      }
-    ]
+
+  function getColorFromPalette(colorIndex, numberOfColors){
+    return "hsl(" + (colorIndex * (60 + 300 / numberOfColors) % 360) + ",100%,50%)";
   }
 
-  var basicOption = {
-    title: {
-      display: true,
-      text: 'Temperature & Humidity Real-time Data',
-      fontSize: 36
+  const sensors = {};
+
+  var chart = new SmoothieChart({
+    responsive: true,
+    maxValue:40, minValue: 15,
+    grid: {
+      millisPerLine:5000
     },
-    scales: {
-      yAxes: [{
-        id: 'Temperature',
-        type: 'linear',
-        scaleLabel: {
-          labelString: 'Temperature(C)',
-          display: true
-        },
-        position: 'left',
-      }, {
-          id: 'Humidity',
-          type: 'linear',
-          scaleLabel: {
-            labelString: 'Humidity(%)',
-            display: true
-          },
-          position: 'right'
-        }]
-    }
-  }
-
-  //Get the context of the canvas element we want to select
-  var ctx = document.getElementById("myChart").getContext("2d");
-  var optionsNoAnimation = { animation: false }
-  var myLineChart = new Chart(ctx, {
-    type: 'line',
-    data: data,
-    options: basicOption
+    timestampFormatter : SmoothieChart.timeFormatter
   });
+  chart.streamTo(document.getElementById("chart"), 2000);
 
-  var ws = new WebSocket('wss://' + location.host);
+
+  var ws = new WebSocket('ws://' + location.host);
   ws.onopen = function () {
     console.log('Successfully connect WebSocket');
   }
   ws.onmessage = function (message) {
-    console.log('receive message' + message.data);
+    console.log('receive message: ' + message.data.toString('utf8'));
+
     try {
-      var obj = JSON.parse(message.data);
-      if(!obj.time || !obj.temperature) {
+      const topic = message.data.substring(0, message.data.indexOf(' '));
+      const body = message.data.substring(topic.length+1);
+      var sensorData = JSON.parse(body);
+
+      if(!sensorData.time || !sensorData.temperature) {
         return;
       }
-      timeData.push(obj.time);
-      temperatureData.push(obj.temperature);
-      // only keep no more than 50 points in the line chart
-      const maxLen = 50;
-      var len = timeData.length;
-      if (len > maxLen) {
-        timeData.shift();
-        temperatureData.shift();
-      }
 
-      if (obj.humidity) {
-        humidityData.push(obj.humidity);
-      }
-      if (humidityData.length > maxLen) {
-        humidityData.shift();
-      }
+      if (!sensors[topic]) {
+        sensors[topic] = new TimeSeries();
+        const color = getColorFromPalette(Object.keys(sensors).length,20);
+        const style = {
+          strokeStyle: color,
+          fillStyle: 'rgba(0, 0, 0, 0.0)',
+          lineWidth: 4
+        };
+        chart.addTimeSeries(sensors[topic], style);
 
-      myLineChart.update();
+        $('#legend').append(
+          $('<li>')
+            .append($('<span>').addClass('symbol').css({'background-color' : color}).text(' '))
+            .append($('<span>').text(topic))
+        )
+      }
+      sensors[topic].append(new Date(sensorData.time).getTime(), parseFloat(sensorData.temperature));
     } catch (err) {
       console.error(err);
     }
