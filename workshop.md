@@ -2,6 +2,7 @@
 
 ## Placeholders
 
+```
 <wifi-ssid>: your wifi network
 <wifi-pass>: the password of your wifi network
 <server-host>: the ip of your laptop in your wifi network
@@ -10,6 +11,7 @@
 <iot-hub-hostname>: the host name of your iot hub
 <sr-value>: the value of the SAS
 <it-hub-connection-string>: the iot hub connection string
+```
 
 ## Flash the firmware
 
@@ -72,7 +74,7 @@ mosquitto_pub -d -h <iot-hub-hostname>.azure-devices.net -i <device-name> -u "<i
 ```
 
 
-## Run the mqtt-iouhub bridge
+## Run the mqtt-iothub bridge
 
 * Download and run the bridge project
 
