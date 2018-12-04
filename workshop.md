@@ -17,7 +17,7 @@
 
 * Download and install [Python3](https://www.python.org/ftp/python/3.7.1/python-3.7.1.exe)
 * Deactivate the firewall
-
+* Install the [MSBuildTools](https://visualstudio.microsoft.com/es/visual-cpp-build-tools/)
 ```bash
 git clone https://github.com/mirko/SonOTA.git
 cd SonOTA
